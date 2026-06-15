@@ -10,15 +10,6 @@ export const balanceModel = {
         });
     },
 
-    getAll: (): Promise<any[]> => {
-        return new Promise((resolve, reject) => {
-            db.all('SELECT * FROM balances', [], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        })
-    },
-
     getByAddressID: (addressId: number, limit: number = 100): Promise<any[]> => {
         return new Promise((resolve, reject) => {
             db.all('SELECT * FROM balances WHERE address_id = ? ORDER BY timestamp DESC LIMIT ?', [addressId, limit], (err, rows) => {
