@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const BINANCE_API_URL = process.env.BINANCE_API_URL || 'https://api.binance.com/api/v3';
+const BLOCKCHAIN_API_URL = 'https://blockchain.info';
 const TIMEOUT = 5000;
 const MAX_RETRIES = 3;
 
@@ -25,5 +26,19 @@ export const binanceService = {
 
     getPriceHistory: async (symbol: string, interval: string = '1h', limit: number = 100): Promise<any[]> => {
         return fetchWithRetry(`${BINANCE_API_URL}/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`)
+    },
+
+    getBlockchainHeight: async (symbol: string): Promise<any> => {
+        const data = await fetchWithRetry(`${BLOCKCHAIN_API_URL}/q/getblockcount`);
+        return typeof data === 'string' ? parseInt(data) : data;
+    },
+
+    getBalance: async (address: string): Promise<any> => {
+        const data = await fetchWithRetry(`${BLOCKCHAIN_API_URL}/balance?active=${address}`);
+        const balanceData = data[address];
+        if (!balanceData || balanceData.final_balance === undefined) {
+            return 0; // Возвращаем 0 если адрес не найден или нет баланса
+        }
+        return parseFloat(balanceData.final_balance) / 100000000;
     }
 };
