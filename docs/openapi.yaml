@@ -1,0 +1,541 @@
+openapi: 3.0.0
+
+info:
+  title: Crypto Tracker API
+  version: 1.0.0
+  description: REST API для отслеживания и агрегации курсов криптовалют
+
+servers:
+  - url: 'http://localhost:3000'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+
+security:
+  - bearerAuth: [ ]
+
+paths:
+  /api/coins:
+    post:
+      summary: Create coin
+      description: Создать новую криптовалюту для отслеживания
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - name
+              properties:
+                symbol:
+                  type: string
+                  example: BTC
+                name:
+                  type: string
+                  example: Bitcoin
+      responses:
+        '201':
+          description: Монета создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  symbol:
+                    type: string
+                  name:
+                    type: string
+        '401':
+          description: Unauthorized
+        '400':
+          description: Invalid input
+
+    get:
+      summary: Get all coins
+      description: Получить список всех отслеживаемых монет
+      responses:
+        '200':
+          description: Список монет
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    symbol:
+                      type: string
+                    name:
+                      type: string
+                    is_tracking:
+                      type: boolean
+        '401':
+          description: Unauthorized
+
+  /api/coins/{id}:
+    get:
+      summary: Get coin by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Данные монеты
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  symbol:
+                    type: string
+                  name:
+                    type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: Coin not found
+
+    put:
+      summary: Update coin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - name
+              properties:
+                symbol:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Монета обновлена
+        '401':
+          description: Unauthorized
+        '404':
+          description: Coin not found
+
+    delete:
+      summary: Delete coin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Монета удалена
+        '401':
+          description: Unauthorized
+        '404':
+          description: Coin not found
+
+  /api/addresses:
+    post:
+      summary: Create address
+      description: Добавить адрес для отслеживания
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+                - coinId
+              properties:
+                address:
+                  type: string
+                  example: 0x1234567890abcdef
+                coinId:
+                  type: integer
+                  example: 1
+                label:
+                  type: string
+                  example: My wallet
+      responses:
+        '201':
+          description: Адрес создан
+        '401':
+          description: Unauthorized
+        '400':
+          description: Invalid input
+
+    get:
+      summary: Get all addresses
+      responses:
+        '200':
+          description: Список адресов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    address:
+                      type: string
+                    coin_id:
+                      type: integer
+                    label:
+                      type: string
+        '401':
+          description: Unauthorized
+
+  /api/addresses/{id}:
+    get:
+      summary: Get address by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Данные адреса
+        '401':
+          description: Unauthorized
+        '404':
+          description: Address not found
+
+    put:
+      summary: Update address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+                - coinId
+              properties:
+                address:
+                  type: string
+                coinId:
+                  type: integer
+                label:
+                  type: string
+      responses:
+        '200':
+          description: Адрес обновлен
+        '401':
+          description: Unauthorized
+        '404':
+          description: Address not found
+
+    delete:
+      summary: Delete address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Адрес удален
+        '401':
+          description: Unauthorized
+        '404':
+          description: Address not found
+
+  /api/prices/current/{symbol}:
+    get:
+      summary: Get current price from Binance
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTCUSDT
+      responses:
+        '200':
+          description: Текущая цена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  price:
+                    type: number
+        '401':
+          description: Unauthorized
+        '404':
+          description: Symbol not found
+
+  /api/prices/history/{symbol}:
+    get:
+      summary: Get price history from Binance
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTCUSDT
+        - name: interval
+          in: query
+          schema:
+            type: string
+            enum: [ 1m, 5m, 15m, 1h, 4h, 1d ]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: История цен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    time:
+                      type: integer
+                    open:
+                      type: number
+                    high:
+                      type: number
+                    low:
+                      type: number
+                    close:
+                      type: number
+        '401':
+          description: Unauthorized
+
+  /api/prices/stored/history/{coinId}:
+    get:
+      summary: Get stored price history
+      parameters:
+        - name: coinId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Сохраненная история цен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    coin_id:
+                      type: integer
+                    price:
+                      type: number
+                    timestamp:
+                      type: string
+        '401':
+          description: Unauthorized
+
+  /api/prices/stored/latest/{coinId}:
+    get:
+      summary: Get latest stored price
+      parameters:
+        - name: coinId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Последняя сохраненная цена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  coin_id:
+                    type: integer
+                  price:
+                    type: number
+                  timestamp:
+                    type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: No data found
+
+  /api/blockchain/history/{coinId}:
+    get:
+      summary: Get blockchain height history
+      parameters:
+        - name: coinId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: История высоты блокчейна
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    coin_id:
+                      type: integer
+                    height:
+                      type: integer
+                    timestamp:
+                      type: string
+        '401':
+          description: Unauthorized
+
+  /api/blockchain/latest/{coinId}:
+    get:
+      summary: Get latest blockchain height
+      parameters:
+        - name: coinId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Последняя высота блокчейна
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  coin_id:
+                    type: integer
+                  height:
+                    type: integer
+                  timestamp:
+                    type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: No data found
+
+  /api/balance/history/{addressId}:
+    get:
+      summary: Get balance history
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: История баланса
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    address_id:
+                      type: integer
+                    balance:
+                      type: number
+                    timestamp:
+                      type: string
+        '401':
+          description: Unauthorized
+
+  /api/balance/latest/{addressId}:
+    get:
+      summary: Get latest balance
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Последний баланс
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  address_id:
+                    type: integer
+                  balance:
+                    type: number
+                  timestamp:
+                    type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: No data found
