@@ -1,11 +1,17 @@
 import express from 'express';
 import routes from './routes';
-import {errorHandler} from './middleware/errorHandler';
-import {initDatabase} from './database/db';
+import { errorHandler } from './middleware/errorHandler';
+import { initDatabase } from './database/db';
 import { startScheduler, stopScheduler } from './background/scheduler';
 
-const app = express();
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+const swaggerDocument = YAML.load('./docs/openapi.yaml');
 
+const app = express();
+export default app;
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.json());
 app.use('/api', routes);
 app.use(errorHandler);
