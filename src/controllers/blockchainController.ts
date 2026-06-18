@@ -6,6 +6,7 @@ export const blockchainController = {
         try {
             const limit = req.query.limit ? parseInt(<string>req.query.limit) : 100;
             const heights = await blockchainHeightModel.getByCoinId(parseInt(<string>req.params.coinId), limit);
+            if (!heights || heights.length === 0) return res.status(404).json({ error: 'Height not found' });
             res.json(heights);
         } catch (error) {
             res.status(500).json({ error: 'Failed to get history' });

@@ -33,8 +33,9 @@ export const coinController = {
 
     update: async (req: Request, res: Response) => {
         try {
-            const { symbol, name } = req.body;
-            await coinModel.update(parseInt(<string>req.params.id), symbol, name);
+            const existingCoin = await coinModel.getById(parseInt(<string>req.params.id));
+            if (!existingCoin) return res.status(404).json({ error: 'Coin not found' });
+            await coinModel.update(parseInt(<string>req.params.id), req.body.symbol, req.body.name);
             res.json({ message: 'Coin updated' });
         } catch (error) {
             res.status(500).json({ error: 'Failed to update coin' });
@@ -43,6 +44,8 @@ export const coinController = {
 
     delete: async (req: Request, res: Response) => {
         try {
+            const existingCoin = await coinModel.getById(parseInt(<string>req.params.id));
+            if (!existingCoin) return res.status(404).json({ error: 'Coin not found' });
             await coinModel.delete(parseInt(<string>req.params.id));
             res.json({ message: 'Coin deleted' });
         } catch (error) {
