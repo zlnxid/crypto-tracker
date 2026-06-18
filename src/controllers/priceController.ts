@@ -17,6 +17,7 @@ export const priceController = {
         try {
             const limit = req.query.limit ? parseInt(<string>req.query.limit) : 100;
             const prices = await priceModel.getByCoinId(parseInt(<string>req.params.coinId), limit);
+            if (!prices || prices.length === 0) return res.status(404).json({ error: 'Price history not found' });
             res.json(prices);
         } catch (error) {
             res.status(500).json({ error: 'Failed to get history' });
@@ -27,6 +28,10 @@ export const priceController = {
         try {
             const { symbol } = req.params;
             const interval = req.query.interval as string || '1h';
+            const validIntervals = ['1m', '3m', '5m', '15m', '1h', '1d'];
+            if (!validIntervals.includes(interval)) {
+                return res.status(400).json({ error: 'Invalid interval' });
+            }
             const limit = req.query.limit ? parseInt(<string>req.query.limit) : 100;
             const history = await binanceService.getPriceHistory(<string>symbol, interval, limit);
             res.json(history);

@@ -6,6 +6,7 @@ export const balanceController = {
         try {
             const limit = req.query.limit ? parseInt(<string>req.query.limit) : 100;
             const balances = await balanceModel.getByAddressID(parseInt(<string>req.params.addressId), limit);
+            if (!balances || balances.length === 0) return res.status(404).json({ error: 'Balance history not found' });
             res.json(balances);
         } catch (error) {
             res.status(500).json({ error: 'Failed to get history' });

@@ -33,8 +33,9 @@ export const addressController = {
 
     update: async (req: Request, res: Response) => {
         try {
-            const { address, coinId } = req.body;
-            await addressModel.update(parseInt(<string>req.params.id), address, coinId);
+            const existingAddress = await addressModel.getById(parseInt(<string>req.params.id));
+            if (!existingAddress) return res.status(404).json({ error: 'Address not found' });
+            await addressModel.update(parseInt(<string>req.params.id), req.body.address, req.body.coinId);
             res.json({ message: 'Address updated' });
         } catch (error) {
             res.status(500).json({ error: 'Failed to update address' });
@@ -43,6 +44,8 @@ export const addressController = {
 
     delete: async (req: Request, res: Response) => {
         try {
+            const existingAddress = await addressModel.getById(parseInt(<string>req.params.id));
+            if (!existingAddress) return res.status(404).json({ error: 'Address not found' });
             await addressModel.delete(parseInt(<string>req.params.id));
             res.json({ message: 'Address deleted' });
         } catch (error) {
